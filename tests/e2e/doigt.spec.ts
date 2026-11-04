@@ -92,6 +92,8 @@ for (const [level, label] of [[36, 'drawing seven constellations from memory'], 
             if (q.type === 'draw') expect(await page.evaluate(() => scrollY), `${q.key} scrolled while drawing`).toBe(before);
             await expect(page.locator('#continue'), `${q.key} not solved by the finger`).toBeVisible();
             expect((await state(page)).mistakes, q.key).toBe(0);
+            // A child reads the explanation before tapping on: never sooner than a third of a second.
+            await page.waitForTimeout(350 + Math.floor(rng() * 300));
             await tapEl('#continue');
             await expect.poll(async () => (await state(page)).screen === 'result' || (await state(page)).index === i + 1, `tap on Continuer after ${q.key}`).toBe(true);
             } catch (error) {
