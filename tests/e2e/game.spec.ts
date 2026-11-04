@@ -120,3 +120,34 @@ test('a wrong stroke is a mistake; three of them bring the guide lines back', as
     expect((await state(page)).mistakes).toBe(3);
     await expect(page.locator('#guide line')).toHaveCount(lines.size);
 });
+
+test('a tap without click is answered once, even if the click comes late', async ({ page }) => {
+    await page.goto('/');
+    await startLevel(page, 1);
+    const q = (await state(page)).question!;
+    if (q.type !== 'choice') throw new Error('level 1 asks choices');
+    const wrong = q.choices.find(c => c.id !== q.answer)!.id;
+    // A finger touch with no click from the browser: pointerdown and pointerup only.
+    const touchOnly = (selector: string) => page.evaluate(sel => {
+        const el = document.querySelector(sel)!;
+        for (const type of ['pointerdown', 'pointerup']) el.dispatchEvent(new PointerEvent(type, { pointerType: 'touch', pointerId: 7, isPrimary: true, bubbles: true }));
+        (window as unknown as { __late: Element }).__late = el;
+    }, selector);
+    const lateClick = () => page.evaluate(() => { (window as unknown as { __late: HTMLElement }).__late.click(); });
+    await touchOnly(`[data-answer="${wrong}"]`);
+    await expect.poll(async () => (await state(page)).mistakes).toBe(1);
+    await page.waitForTimeout(100);
+    await lateClick();
+    await page.waitForTimeout(400);
+    expect((await state(page)).mistakes).toBe(1);
+    await page.waitForTimeout(700);
+    await touchOnly(`[data-answer="${q.answer}"]`);
+    await expect(page.locator('#continue')).toBeVisible();
+    await touchOnly('#continue');
+    await expect.poll(async () => (await state(page)).index).toBe(1);
+    // The late click lands on the old, detached Continuer: one question only has advanced.
+    await lateClick();
+    await page.waitForTimeout(500);
+    expect((await state(page)).index).toBe(1);
+    expect((await state(page)).outcomes).toEqual(['retry']);
+});

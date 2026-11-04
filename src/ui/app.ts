@@ -250,13 +250,15 @@ function speakNotion(): void {
 /**
  * Buttons act on the standard click. Repli: if the browser delivered a finger's pointerdown and pointerup
  * on the button but no click within 350 ms (seen intermittently with Chromium after drawing Orion), the
- * action runs once anyway. A click always wins and cancels the repli; nothing is ever swallowed.
+ * action runs once anyway. A click that arrives first cancels the repli. A click that arrives AFTER the
+ * repli fired (a slow phone) is the same tap: it is ignored, so the action never runs twice.
  */
 let fallbackPresses = 0;
 function onPress(el: Element | null, action: () => void): void {
     if (!el) return;
     let down: number | null = null;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let fallbackAt = -Infinity;
     el.addEventListener('pointerdown', event => { const e = event as PointerEvent; down = e.pointerType === 'touch' ? e.pointerId : null; });
     el.addEventListener('pointercancel', () => { down = null; });
     el.addEventListener('pointerup', event => {
@@ -264,9 +266,14 @@ function onPress(el: Element | null, action: () => void): void {
         if (down === null || down !== e.pointerId) return;
         down = null;
         clearTimeout(timer);
-        timer = setTimeout(() => { if (el.isConnected) { fallbackPresses++; action(); } }, 350);
+        timer = setTimeout(() => { if (el.isConnected) { fallbackPresses++; fallbackAt = performance.now(); action(); } }, 350);
     });
-    el.addEventListener('click', () => { clearTimeout(timer); action(); });
+    el.addEventListener('click', () => {
+        clearTimeout(timer);
+        // The late click of a tap already handled by the repli; the button works again after that.
+        if (performance.now() - fallbackAt < 3000) { fallbackAt = -Infinity; return; }
+        action();
+    });
 }
 
 /* ---------- interactions ---------- */
