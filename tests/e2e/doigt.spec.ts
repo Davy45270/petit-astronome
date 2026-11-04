@@ -20,10 +20,11 @@ for (const [level, label] of [[36, 'drawing seven constellations from memory'], 
             const log: string[] = [];
             Object.defineProperty(window, '__probe', { value: log });
             for (const type of ['pointerdown', 'pointerup', 'pointercancel', 'click', 'lostpointercapture']) document.addEventListener(type, event => {
-                const el = event.target as Element;
+                const target = event.target;
                 const p = event as PointerEvent;
-                log.push(`${Math.round(performance.now())} ${type} ${String(p.pointerId)} ${el.tagName}${el.id ? '#' + el.id : ''}.${(el.getAttribute('class') ?? '').slice(0, 20)} ${Math.round(p.clientX)},${Math.round(p.clientY)} connected=${el.isConnected}`);
-                if (log.length > 60) log.shift();
+                const name = target instanceof Element ? `${target.tagName}${target.id ? '#' + target.id : ''}.${(target.getAttribute('class') ?? '').slice(0, 20)} connected=${target.isConnected}` : (target?.constructor.name ?? 'null');
+                log.push(`${Math.round(performance.now())} ${type} ${String(p.pointerId)} ${name} ${Math.round(p.clientX)},${Math.round(p.clientY)}`);
+                if (log.length > 40) log.shift();
             }, true);
         });
         await page.goto('/');
