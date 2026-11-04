@@ -247,14 +247,36 @@ function speakNotion(): void {
     speak(`${info.notion.title}. ${info.notion.lines.join(' ')}`);
 }
 
+/**
+ * Buttons act on the standard click. Repli: if the browser delivered a finger's pointerdown and pointerup
+ * on the button but no click within 350 ms (seen intermittently with Chromium after drawing Orion), the
+ * action runs once anyway. A click always wins and cancels the repli; nothing is ever swallowed.
+ */
+let fallbackPresses = 0;
+function onPress(el: Element | null, action: () => void): void {
+    if (!el) return;
+    let down: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    el.addEventListener('pointerdown', event => { const e = event as PointerEvent; down = e.pointerType === 'touch' ? e.pointerId : null; });
+    el.addEventListener('pointercancel', () => { down = null; });
+    el.addEventListener('pointerup', event => {
+        const e = event as PointerEvent;
+        if (down === null || down !== e.pointerId) return;
+        down = null;
+        clearTimeout(timer);
+        timer = setTimeout(() => { if (el.isConnected) { fallbackPresses++; action(); } }, 350);
+    });
+    el.addEventListener('click', () => { clearTimeout(timer); action(); });
+}
+
 /* ---------- interactions ---------- */
 
 function wire(): void {
-    root.querySelectorAll<HTMLElement>('#home').forEach(b => b.addEventListener('click', () => { screen = 'home'; render(); scrollTo(0, 0); }));
+    root.querySelectorAll<HTMLElement>('#home').forEach(b => onPress(b, () => { screen = 'home'; render(); scrollTo(0, 0); }));
     root.querySelector('#back')?.addEventListener('click', () => { screen = 'home'; confirmErase = false; render(); });
     root.querySelector('#listen')?.addEventListener('click', () => { if (screen === 'notion') speakNotion(); else speak(current()!.prompt); });
     if (screen === 'home') {
-        root.querySelectorAll<HTMLElement>('[data-level]').forEach(b => b.addEventListener('click', () => {
+        root.querySelectorAll<HTMLElement>('[data-level]').forEach(b => onPress(b, () => {
             const n = Number(b.dataset.level);
             if (unlocked(save.records, n)) openLevel(n);
             else {
@@ -266,10 +288,10 @@ function wire(): void {
         root.querySelector<HTMLInputElement>('#voice')?.addEventListener('change', event => { save.voice = (event.target as HTMLInputElement).checked; persist(); });
         root.querySelector('#parents')?.addEventListener('click', () => { gate = makeGate(Math.random); screen = 'gate'; render(); root.querySelector<HTMLInputElement>('#gate-answer')?.focus(); });
     }
-    if (screen === 'notion') root.querySelector('#start')?.addEventListener('click', startSession);
+    if (screen === 'notion') onPress(root.querySelector('#start'), startSession);
     if (screen === 'result') {
-        root.querySelector('#again')?.addEventListener('click', () => openLevel(level));
-        root.querySelector('#next')?.addEventListener('click', () => openLevel(level + 1));
+        onPress(root.querySelector('#again'), () => openLevel(level));
+        onPress(root.querySelector('#next'), () => openLevel(level + 1));
     }
     if (screen === 'gate') root.querySelector<HTMLFormElement>('#gate')?.addEventListener('submit', event => {
         event.preventDefault();
@@ -290,11 +312,11 @@ function wire(): void {
 }
 
 function wireExercise(): void {
-    root.querySelector('#continue')?.addEventListener('click', goOn);
+    onPress(root.querySelector('#continue'), goOn);
     const q = current();
     if (q?.type === 'spot' && solved) mark(root.querySelector('#scene')!, q.answer, 'correct');
     if (!q || solved) return;
-    if (q.type === 'choice') root.querySelectorAll<HTMLElement>('[data-answer]').forEach(b => b.addEventListener('click', () => {
+    if (q.type === 'choice') root.querySelectorAll<HTMLElement>('[data-answer]').forEach(b => onPress(b, () => {
         const id = b.dataset.answer!;
         if (solved || tried.has(id)) return;
         if (isRight(q, id)) judge(true, true);
@@ -306,7 +328,7 @@ function wireExercise(): void {
         }
     }));
     if (q.type === 'spot') wireSpot();
-    if (q.type === 'order') root.querySelectorAll<HTMLElement>('[data-item]').forEach(b => b.addEventListener('click', () => {
+    if (q.type === 'order') root.querySelectorAll<HTMLElement>('[data-item]').forEach(b => onPress(b, () => {
         const id = b.dataset.item!;
         if (solved || placed.includes(id)) return;
         if (isRight(q, id, placed.length)) {
@@ -488,7 +510,7 @@ function wireDraw(q: DrawQuestion): void {
 declare global { interface Window { __astro?: unknown } }
 Object.defineProperty(window, '__astro', {
     value: Object.freeze({
-        state: () => ({ screen, level, index: attempt.index, score: attempt.score, solved, outcomes: [...outcomes], validated, question: current() ?? null, placed: [...placed], drawn: [...drawn], mistakes }),
+        state: () => ({ screen, level, index: attempt.index, score: attempt.score, solved, outcomes: [...outcomes], validated, question: current() ?? null, placed: [...placed], drawn: [...drawn], mistakes, fallbackPresses }),
         /** Client coordinates of a star on the drawing board. */
         star: (id: string): Point | null => {
             const svg = root.querySelector<SVGSVGElement>('#board');

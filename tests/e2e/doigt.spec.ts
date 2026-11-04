@@ -109,6 +109,10 @@ for (const [level, label] of [[36, 'drawing seven constellations from memory'], 
         }
         await expect(page.locator('.result .score')).toHaveText('6/6');
         await expect(page.locator('.result .stars')).toHaveAttribute('aria-label', '3 étoiles');
+        // How often the browser gave no click for a finger tap (the button's repli acted instead).
+        const { fallbackPresses } = await page.evaluate(() => (window as unknown as { __astro: { state: () => { fallbackPresses: number } } }).__astro.state());
+        test.info().annotations.push({ type: 'repli', description: String(fallbackPresses) });
+        console.log(`level ${level}: taps without click = ${fallbackPresses}`);
     });
 }
 
