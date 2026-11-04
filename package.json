@@ -1,0 +1,36 @@
+{
+  "name": "petit-astronome",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Discover the Sun, the planets, the Moon, the stars and the constellations: an astronomy game for children from 6.",
+  "license": "MIT",
+  "author": "David Sevin",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build && node scripts/check-size.js",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run --pool=threads --maxWorkers=2",
+    "test:e2e": "playwright test",
+    "screenshots": "SCREENSHOTS=1 playwright test tests/e2e/screenshots.spec.ts --project=mobile-chromium"
+  },
+  "dependencies": {
+    "@fontsource/fredoka": "5.2.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.1",
+    "@types/node": "22.20.5",
+    "eslint": "10.13.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "vite": "8.3.5",
+    "vite-plugin-pwa": "2.0.0",
+    "vitest": "5.0.5"
+  }
+}

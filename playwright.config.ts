@@ -1,0 +1,11 @@
+import { defineConfig } from '@playwright/test';
+export default defineConfig({
+    testDir: 'tests/e2e', workers: 1, fullyParallel: false, timeout: 90_000, forbidOnly: Boolean(process.env.CI),
+    use: { locale: 'fr-FR', baseURL: 'http://127.0.0.1:4173', browserName: 'chromium' },
+    projects: [
+        { name: 'desktop', use: { viewport: { width: 1280, height: 900 } }, testIgnore: ['**/doigt.spec.ts', '**/screenshots.spec.ts'] },
+        { name: 'mobile', testIgnore: '**/screenshots.spec.ts', use: { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true } },
+        { name: 'mobile-chromium', testMatch: '**/screenshots.spec.ts', use: { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true } }
+    ],
+    webServer: { command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort', url: 'http://127.0.0.1:4173', reuseExistingServer: false }
+});
