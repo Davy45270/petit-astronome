@@ -11,6 +11,9 @@ test('home lists every level; only the first is open on a new device', async ({ 
     await page.locator('[data-level="2"]').click({ force: true });
     await expect(page.locator('[data-level="2"]')).toHaveClass(/shake/);
     await expect(page.locator('.notion')).toHaveCount(0);
+    await expect(page.locator('body')).toHaveAttribute('data-screen', 'home');
+    await expect(page.locator('#prompt')).toHaveCount(0);
+    await expect(page.locator('[data-level]')).toHaveCount(37);
 });
 
 test('a perfect first level earns three stars and opens the next level', async ({ page }) => {

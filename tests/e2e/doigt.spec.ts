@@ -27,12 +27,35 @@ for (const [level, label] of [[36, 'drawing seven constellations from memory'], 
             await touch('touchEnd');
         };
         const tapEl = async (selector: string): Promise<void> => {
-            // The child scrolls to the button first, like on a phone.
-            await page.locator(selector).scrollIntoViewIfNeeded();
+            // Like a child on a phone: swipe the page up until the button is on screen, then tap it.
+            const viewport = page.viewportSize()!;
+            for (let swipe = 0; swipe < 12; swipe++) {
+                const b = (await page.locator(selector).boundingBox())!;
+                if (b.y >= 60 && b.y + b.height <= viewport.height - 60) break;
+                const up = b.y > viewport.height / 2;
+                const x = viewport.width * (0.3 + rng() * 0.4), y0 = viewport.height * (up ? 0.78 : 0.3), y1 = viewport.height * (up ? 0.3 : 0.78);
+                await touch('touchStart', x, y0);
+                for (let s = 1; s <= 10; s++) {
+                    await touch('touchMove', x + noise(4), y0 + (y1 - y0) * s / 10);
+                    await page.waitForTimeout(16);
+                }
+                await touch('touchEnd');
+                // Let any fling settle before the next look.
+                let last = -1;
+                for (let i = 0; i < 40; i++) {
+                    const y = await page.evaluate(() => scrollY);
+                    if (y === last) break;
+                    last = y;
+                    await page.waitForTimeout(100);
+                }
+            }
             const box = (await page.locator(selector).boundingBox())!;
+            expect(box.y + box.height, `${selector} reached by swiping`).toBeLessThanOrEqual(page.viewportSize()!.height);
+            expect(box.y, `${selector} reached by swiping`).toBeGreaterThanOrEqual(0);
             await tap(box.x + box.width / 2, box.y + box.height / 2, Math.min(box.width, box.height) / 4);
         };
         await tapEl(`[data-level="${level}"]`);
+        await expect(page.locator('.notion')).toBeVisible();
         await tapEl('#start');
         const scroll = await page.evaluate(() => scrollY);
         for (let i = 0; i < 6; i++) {
