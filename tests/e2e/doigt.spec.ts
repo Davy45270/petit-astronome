@@ -26,6 +26,13 @@ for (const [level, label] of [[36, 'drawing seven constellations from memory'], 
                 log.push(`${Math.round(performance.now())} ${type} ${String(p.pointerId)} ${name} ${Math.round(p.clientX)},${Math.round(p.clientY)}`);
                 if (log.length > 40) log.shift();
             }, true);
+            let lastY = 0;
+            document.addEventListener('scroll', () => {
+                if (Math.abs(scrollY - lastY) < 1) return;
+                lastY = scrollY;
+                log.push(`${Math.round(performance.now())} scroll ${Math.round(scrollY)}`);
+                if (log.length > 40) log.shift();
+            }, true);
         });
         await page.goto('/');
         const probe = async (): Promise<string> => (await page.evaluate(() => (window as unknown as { __probe: string[] }).__probe)).join('\n');
