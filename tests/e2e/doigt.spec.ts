@@ -15,7 +15,19 @@ const finger = (cdp: CDPSession): Touch => async (type, x = 0, y = 0) => {
 for (const [level, label] of [[36, 'drawing seven constellations from memory'], [33, 'Orion with its guide'], [15, 'sorting the planets'], [29, 'finding the Pole Star'], [4, 'the solar system'], [26, 'the Moon around the Earth'], [8, 'recognising planets']] as const) {
     test(`noisy finger session: level ${level}, ${label}`, async ({ page, context }) => {
         await openAll(page);
+        // Every pointer and click the page receives, to explain a lost touch if one happens.
+        await page.addInitScript(() => {
+            const log: string[] = [];
+            Object.defineProperty(window, '__probe', { value: log });
+            for (const type of ['pointerdown', 'pointerup', 'pointercancel', 'click', 'lostpointercapture']) document.addEventListener(type, event => {
+                const el = event.target as Element;
+                const p = event as PointerEvent;
+                log.push(`${Math.round(performance.now())} ${type} ${String(p.pointerId)} ${el.tagName}${el.id ? '#' + el.id : ''}.${(el.getAttribute('class') ?? '').slice(0, 20)} ${Math.round(p.clientX)},${Math.round(p.clientY)} connected=${el.isConnected}`);
+                if (log.length > 60) log.shift();
+            }, true);
+        });
         await page.goto('/');
+        const probe = async (): Promise<string> => (await page.evaluate(() => (window as unknown as { __probe: string[] }).__probe)).join('\n');
         const cdp = await context.newCDPSession(page);
         const touch = finger(cdp);
         const rng = makeRng(level * 17);
@@ -74,10 +86,19 @@ for (const [level, label] of [[36, 'drawing seven constellations from memory'], 
                 }
                 await touch('touchEnd');
             }
-            await expect(page.locator('#continue')).toBeVisible();
+            try {
+                await expect(page.locator('#continue')).toBeVisible();
+            } catch {
+                throw new Error(`${q.key} not solved by the finger:\n${await probe()}`);
+            }
             expect((await state(page)).mistakes, q.key).toBe(0);
             expect(await page.evaluate(() => scrollY)).toBe(scroll);
             await tapEl('#continue');
+            try {
+                await expect.poll(async () => (await state(page)).screen === 'result' || (await state(page)).index === i + 1).toBe(true);
+            } catch {
+                throw new Error(`tap on Continuer after ${q.key} lost:\n${await probe()}`);
+            }
         }
         await expect(page.locator('.result .score')).toHaveText('6/6');
         await expect(page.locator('.result .stars')).toHaveAttribute('aria-label', '3 étoiles');
