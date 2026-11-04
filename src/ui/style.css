@@ -190,3 +190,20 @@ line.drawn { stroke: #ffe58a; stroke-width: 3.5; stroke-linecap: round; filter: 
     .track { gap: 5px; }
     #prompt { font-size: 1.08rem; }
 }
+
+/* ---------- the author's other games ---------- */
+.foot-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.other-games { margin-top: 12px; }
+.other-games h1 { font-size: 1.5rem; margin: 0 0 12px; }
+.other-games ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.other-game {
+    display: flex; align-items: center; gap: 14px; min-height: 84px; padding: 10px 14px; border-radius: 18px; text-decoration: none; color: var(--ink);
+    background: linear-gradient(160deg, var(--card), #10164a); border: 2px solid var(--card-line); box-shadow: 0 4px 0 #0b1035;
+}
+.other-game:hover { border-color: var(--accent); }
+.other-game:active { transform: translateY(2px); box-shadow: 0 2px 0 #0b1035; }
+.other-game:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.other-game img { flex: none; width: 64px; height: 64px; border-radius: 16px; box-shadow: 0 0 0 2px var(--panel-line); }
+.other-game > span { display: grid; gap: 2px; min-width: 0; }
+.other-game b { font-size: 1.15rem; color: var(--pill); }
+.other-game span span { font-size: .92rem; color: var(--muted); line-height: 1.3; }

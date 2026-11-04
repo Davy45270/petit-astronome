@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- “Mes autres jeux” on the home screen: a short list of the author's three other games (Opencade, Opencadkid, TicTac), each with its icon and one sentence, opened in the same tab.
+- The list and its icons ship with the app, so the screen still shows offline; the network guard allows these three plain links and nothing else.
+
 ## 0.1.0
 
 - Thirty-seven levels in seven lessons: the Sun and the Earth, recognising the planets, their order, sizes and distances, the Moon, stars and constellations.

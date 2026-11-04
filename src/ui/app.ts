@@ -8,9 +8,10 @@ import { readSave, writeSave, browserStorage } from '../shell/storage';
 import { artSvg, sceneSvg, drawBoardSvg, constellationLayout, skyLines } from './art';
 import { mascotSvg, type Mood } from './mascot';
 import { parentsHtml, gateHtml, makeGate, type Gate } from './parents';
+import { otherGamesHtml } from './other-games';
 import { canSpeak, speak, onVoices } from './speech';
 
-type Screen = 'home' | 'notion' | 'exercise' | 'result' | 'parents' | 'gate';
+type Screen = 'home' | 'notion' | 'exercise' | 'result' | 'parents' | 'gate' | 'games';
 
 const root = document.querySelector<HTMLElement>('#app')!;
 const storage = browserStorage();
@@ -78,7 +79,7 @@ function homeHtml(): string {
     const earned = levels.reduce((sum, _, i) => sum + stars(best(save.records, i + 1)), 0);
     return `<header class="hero">${mascotSvg('joie', motion())}<div><h1>Petit Astronome</h1><p>Planètes, Lune, étoiles et constellations</p><p class="total">${starsHtml(Math.min(3, earned))}<span>${earned} / ${levels.length * 3} étoiles</span></p></div></header>
         ${blocks}
-        <footer class="home-foot"><label class="toggle"><input id="voice" type="checkbox" ${save.voice ? 'checked' : ''}> Lire les questions à voix haute</label><button id="parents" class="ghost">Espace parents</button></footer>`;
+        <footer class="home-foot"><label class="toggle"><input id="voice" type="checkbox" ${save.voice ? 'checked' : ''}> Lire les questions à voix haute</label><span class="foot-links"><button id="other-games" class="ghost">Mes autres jeux</button><button id="parents" class="ghost">Espace parents</button></span></footer>`;
 }
 
 /* ---------- notion card ---------- */
@@ -146,9 +147,9 @@ function resultHtml(): string {
 
 function render(): void {
     document.body.dataset.screen = screen;
-    if (screen !== 'home' && screen !== 'parents' && screen !== 'gate') document.body.style.setProperty('--hue', String(lessons[levelInfo(level).lesson - 1]!.hue));
+    if (screen !== 'home' && screen !== 'parents' && screen !== 'gate' && screen !== 'games') document.body.style.setProperty('--hue', String(lessons[levelInfo(level).lesson - 1]!.hue));
     root.innerHTML = screen === 'home' ? homeHtml() : screen === 'notion' ? notionHtml() : screen === 'exercise' ? exerciseHtml()
-        : screen === 'result' ? resultHtml() : screen === 'gate' ? gateHtml(gate!) : parentsHtml(save, confirmErase);
+        : screen === 'result' ? resultHtml() : screen === 'gate' ? gateHtml(gate!) : screen === 'games' ? otherGamesHtml() : parentsHtml(save, confirmErase);
     wire();
 }
 
@@ -293,6 +294,7 @@ function wire(): void {
             }
         }));
         root.querySelector<HTMLInputElement>('#voice')?.addEventListener('change', event => { save.voice = (event.target as HTMLInputElement).checked; persist(); });
+        onPress(root.querySelector('#other-games'), () => { screen = 'games'; render(); scrollTo(0, 0); root.querySelector<HTMLElement>('#other-games-title')?.focus(); });
         root.querySelector('#parents')?.addEventListener('click', () => { gate = makeGate(Math.random); screen = 'gate'; render(); root.querySelector<HTMLInputElement>('#gate-answer')?.focus(); });
     }
     if (screen === 'notion') onPress(root.querySelector('#start'), startSession);
