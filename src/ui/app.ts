@@ -9,6 +9,7 @@ import { artSvg, sceneSvg, drawBoardSvg, constellationLayout, skyLines } from '.
 import { mascotSvg, type Mood } from './mascot';
 import { parentsHtml, gateHtml, makeGate, type Gate } from './parents';
 import { otherGamesHtml } from './other-games';
+import { feedbackLinkHtml } from './feedback';
 import { canSpeak, speak, onVoices } from './speech';
 
 type Screen = 'home' | 'notion' | 'exercise' | 'result' | 'parents' | 'gate' | 'games';
@@ -79,7 +80,7 @@ function homeHtml(): string {
     const earned = levels.reduce((sum, _, i) => sum + stars(best(save.records, i + 1)), 0);
     return `<header class="hero">${mascotSvg('joie', motion())}<div><h1>Petit Astronome</h1><p>Planètes, Lune, étoiles et constellations</p><p class="total">${starsHtml(Math.min(3, earned))}<span>${earned} / ${levels.length * 3} étoiles</span></p></div></header>
         ${blocks}
-        <footer class="home-foot"><label class="toggle"><input id="voice" type="checkbox" ${save.voice ? 'checked' : ''}> Lire les questions à voix haute</label><span class="foot-links"><button id="other-games" class="ghost">Mes autres jeux</button><button id="parents" class="ghost">Espace parents</button></span></footer>`;
+        <footer class="home-foot"><label class="toggle"><input id="voice" type="checkbox" ${save.voice ? 'checked' : ''}> Lire les questions à voix haute</label><span class="foot-links"><button id="other-games" class="ghost">Mes autres jeux</button><button id="parents" class="ghost">Espace parents</button>${feedbackLinkHtml()}</span></footer>`;
 }
 
 /* ---------- notion card ---------- */
