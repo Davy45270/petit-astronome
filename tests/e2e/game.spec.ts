@@ -100,6 +100,9 @@ test('a wrong stroke is a mistake; three of them bring the guide lines back', as
     await openAll(page);
     await page.goto('/');
     await startLevel(page, 36);
+    // The summer triangle links every pair of its stars: move on to a figure with a pair to get wrong.
+    const small = async (): Promise<boolean> => { const c = (await state(page)).question!; return c.type === 'draw' && constellation(c.constellation).stars.length < 4; };
+    while (await small()) { await solve(page); await page.locator('#continue').click(); }
     const q = (await state(page)).question!;
     if (q.type !== 'draw') throw new Error('draw level');
     await expect(page.locator('#guide line')).toHaveCount(0);

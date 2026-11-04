@@ -246,14 +246,44 @@ function speakNotion(): void {
     speak(`${info.notion.title}. ${info.notion.lines.join(' ')}`);
 }
 
+/**
+ * A finger tap is recognised from the button's own pointerdown and pointerup, so it does not depend on the
+ * browser turning the touch into a click: right after a stroke on the sky, Chromium sometimes dropped
+ * that click (seen by the noisy-finger test). The click stays for the keyboard and is ignored when a
+ * tap has just been handled.
+ */
+function onTap(el: Element | null, action: () => void): void {
+    if (!el) return;
+    let down: { id: number; x: number; y: number } | null = null;
+    let tappedAt = -Infinity;
+    el.addEventListener('pointerdown', event => {
+        const e = event as PointerEvent;
+        if (e.isPrimary && e.button <= 0) down = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    });
+    el.addEventListener('pointercancel', () => { down = null; });
+    el.addEventListener('pointerup', event => {
+        const e = event as PointerEvent;
+        const start = down;
+        down = null;
+        if (!start || start.id !== e.pointerId || Math.hypot(e.clientX - start.x, e.clientY - start.y) > 16) return;
+        if (!el.isConnected || !el.contains(document.elementFromPoint(e.clientX, e.clientY))) return;
+        tappedAt = performance.now();
+        action();
+    });
+    el.addEventListener('click', () => {
+        if (performance.now() - tappedAt < 800) return;
+        action();
+    });
+}
+
 /* ---------- interactions ---------- */
 
 function wire(): void {
-    root.querySelectorAll<HTMLElement>('#home').forEach(b => b.addEventListener('click', () => { screen = 'home'; render(); scrollTo(0, 0); }));
+    root.querySelectorAll<HTMLElement>('#home').forEach(b => onTap(b, () => { screen = 'home'; render(); scrollTo(0, 0); }));
     root.querySelector('#back')?.addEventListener('click', () => { screen = 'home'; confirmErase = false; render(); });
     root.querySelector('#listen')?.addEventListener('click', () => { if (screen === 'notion') speakNotion(); else speak(current()!.prompt); });
     if (screen === 'home') {
-        root.querySelectorAll<HTMLElement>('[data-level]').forEach(b => b.addEventListener('click', () => {
+        root.querySelectorAll<HTMLElement>('[data-level]').forEach(b => onTap(b, () => {
             const n = Number(b.dataset.level);
             if (unlocked(save.records, n)) openLevel(n);
             else {
@@ -265,10 +295,10 @@ function wire(): void {
         root.querySelector<HTMLInputElement>('#voice')?.addEventListener('change', event => { save.voice = (event.target as HTMLInputElement).checked; persist(); });
         root.querySelector('#parents')?.addEventListener('click', () => { gate = makeGate(Math.random); screen = 'gate'; render(); root.querySelector<HTMLInputElement>('#gate-answer')?.focus(); });
     }
-    if (screen === 'notion') root.querySelector('#start')?.addEventListener('click', startSession);
+    if (screen === 'notion') onTap(root.querySelector('#start'), startSession);
     if (screen === 'result') {
-        root.querySelector('#again')?.addEventListener('click', () => openLevel(level));
-        root.querySelector('#next')?.addEventListener('click', () => openLevel(level + 1));
+        onTap(root.querySelector('#again'), () => openLevel(level));
+        onTap(root.querySelector('#next'), () => openLevel(level + 1));
     }
     if (screen === 'gate') root.querySelector<HTMLFormElement>('#gate')?.addEventListener('submit', event => {
         event.preventDefault();
@@ -289,11 +319,11 @@ function wire(): void {
 }
 
 function wireExercise(): void {
-    root.querySelector('#continue')?.addEventListener('click', goOn);
+    onTap(root.querySelector('#continue'), goOn);
     const q = current();
     if (q?.type === 'spot' && solved) mark(root.querySelector('#scene')!, q.answer, 'correct');
     if (!q || solved) return;
-    if (q.type === 'choice') root.querySelectorAll<HTMLElement>('[data-answer]').forEach(b => b.addEventListener('click', () => {
+    if (q.type === 'choice') root.querySelectorAll<HTMLElement>('[data-answer]').forEach(b => onTap(b, () => {
         const id = b.dataset.answer!;
         if (solved || tried.has(id)) return;
         if (isRight(q, id)) judge(true, true);
@@ -305,7 +335,7 @@ function wireExercise(): void {
         }
     }));
     if (q.type === 'spot') wireSpot();
-    if (q.type === 'order') root.querySelectorAll<HTMLElement>('[data-item]').forEach(b => b.addEventListener('click', () => {
+    if (q.type === 'order') root.querySelectorAll<HTMLElement>('[data-item]').forEach(b => onTap(b, () => {
         const id = b.dataset.item!;
         if (solved || placed.includes(id)) return;
         if (isRight(q, id, placed.length)) {

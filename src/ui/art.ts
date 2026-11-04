@@ -169,7 +169,7 @@ function systemSvg(spots: boolean): string {
     const body = items.map(({ id, r, cx }) => `<g transform="translate(${f(cx * scale)} 80)" data-planet="${id}">${spots ? `<circle class="hit" r="${f(r * scale)}" fill="transparent" data-spot="${id}"/>` : ''}${planetBody(id, r * scale)}</g>`).join('');
     return `<svg class="art system" viewBox="0 0 400 160" role="img" aria-label="Le Soleil et les huit planètes, de Mercure à Neptune">
         <rect width="400" height="160" rx="20" class="space"/>${backdropStars(400, 11, 30)}
-        <g transform="translate(-150 80)">${sunBody(180)}</g>${spots ? '<circle class="hit" cx="0" cy="80" r="30" fill="transparent" data-spot="soleil"/>' : ''}
+        <g transform="translate(-150 80)">${sunBody(180)}</g>${spots ? '<circle class="hit" cx="16" cy="80" r="16" fill="transparent" data-spot="soleil"/>' : ''}
         ${body}<text x="200" y="150" class="cap">tailles et distances pas à l’échelle</text></svg>`;
 }
 
