@@ -247,51 +247,14 @@ function speakNotion(): void {
     speak(`${info.notion.title}. ${info.notion.lines.join(' ')}`);
 }
 
-/**
- * A finger tap is recognised from the button's own pointerdown and pointerup, so it does not depend on the
- * browser turning the touch into a click: right after a stroke on the sky, Chromium sometimes dropped
- * that click (seen by the noisy-finger test). The click stays for the keyboard and is ignored when a
- * tap has just been handled.
- */
-let lastTap = -Infinity;
-// The browser's own click for a tap already handled arrives after the screen has changed and lands on
-// whatever is now under the finger: swallow it, whatever its target.
-document.addEventListener('click', event => {
-    if (performance.now() - lastTap < 700 && event.isTrusted && event.pointerType !== '') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-    }
-}, true);
-
-function onTap(el: Element | null, action: () => void): void {
-    if (!el) return;
-    let down: { id: number; x: number; y: number } | null = null;
-    el.addEventListener('pointerdown', event => {
-        const e = event as PointerEvent;
-        if (e.isPrimary && e.button <= 0) down = { id: e.pointerId, x: e.clientX, y: e.clientY };
-    });
-    el.addEventListener('pointercancel', () => { down = null; });
-    el.addEventListener('pointerup', event => {
-        const e = event as PointerEvent;
-        const start = down;
-        down = null;
-        if (!start || start.id !== e.pointerId || Math.hypot(e.clientX - start.x, e.clientY - start.y) > 16) return;
-        if (!el.isConnected || !el.contains(document.elementFromPoint(e.clientX, e.clientY))) return;
-        lastTap = performance.now();
-        action();
-    });
-    // Keyboard (Enter, Space) and any click not preceded by a handled tap.
-    el.addEventListener('click', () => { action(); });
-}
-
 /* ---------- interactions ---------- */
 
 function wire(): void {
-    root.querySelectorAll<HTMLElement>('#home').forEach(b => onTap(b, () => { screen = 'home'; render(); scrollTo(0, 0); }));
+    root.querySelectorAll<HTMLElement>('#home').forEach(b => b.addEventListener('click', () => { screen = 'home'; render(); scrollTo(0, 0); }));
     root.querySelector('#back')?.addEventListener('click', () => { screen = 'home'; confirmErase = false; render(); });
     root.querySelector('#listen')?.addEventListener('click', () => { if (screen === 'notion') speakNotion(); else speak(current()!.prompt); });
     if (screen === 'home') {
-        root.querySelectorAll<HTMLElement>('[data-level]').forEach(b => onTap(b, () => {
+        root.querySelectorAll<HTMLElement>('[data-level]').forEach(b => b.addEventListener('click', () => {
             const n = Number(b.dataset.level);
             if (unlocked(save.records, n)) openLevel(n);
             else {
@@ -303,10 +266,10 @@ function wire(): void {
         root.querySelector<HTMLInputElement>('#voice')?.addEventListener('change', event => { save.voice = (event.target as HTMLInputElement).checked; persist(); });
         root.querySelector('#parents')?.addEventListener('click', () => { gate = makeGate(Math.random); screen = 'gate'; render(); root.querySelector<HTMLInputElement>('#gate-answer')?.focus(); });
     }
-    if (screen === 'notion') onTap(root.querySelector('#start'), startSession);
+    if (screen === 'notion') root.querySelector('#start')?.addEventListener('click', startSession);
     if (screen === 'result') {
-        onTap(root.querySelector('#again'), () => openLevel(level));
-        onTap(root.querySelector('#next'), () => openLevel(level + 1));
+        root.querySelector('#again')?.addEventListener('click', () => openLevel(level));
+        root.querySelector('#next')?.addEventListener('click', () => openLevel(level + 1));
     }
     if (screen === 'gate') root.querySelector<HTMLFormElement>('#gate')?.addEventListener('submit', event => {
         event.preventDefault();
@@ -327,11 +290,11 @@ function wire(): void {
 }
 
 function wireExercise(): void {
-    onTap(root.querySelector('#continue'), goOn);
+    root.querySelector('#continue')?.addEventListener('click', goOn);
     const q = current();
     if (q?.type === 'spot' && solved) mark(root.querySelector('#scene')!, q.answer, 'correct');
     if (!q || solved) return;
-    if (q.type === 'choice') root.querySelectorAll<HTMLElement>('[data-answer]').forEach(b => onTap(b, () => {
+    if (q.type === 'choice') root.querySelectorAll<HTMLElement>('[data-answer]').forEach(b => b.addEventListener('click', () => {
         const id = b.dataset.answer!;
         if (solved || tried.has(id)) return;
         if (isRight(q, id)) judge(true, true);
@@ -343,7 +306,7 @@ function wireExercise(): void {
         }
     }));
     if (q.type === 'spot') wireSpot();
-    if (q.type === 'order') root.querySelectorAll<HTMLElement>('[data-item]').forEach(b => onTap(b, () => {
+    if (q.type === 'order') root.querySelectorAll<HTMLElement>('[data-item]').forEach(b => b.addEventListener('click', () => {
         const id = b.dataset.item!;
         if (solved || placed.includes(id)) return;
         if (isRight(q, id, placed.length)) {
@@ -473,8 +436,9 @@ function wireDraw(q: DrawQuestion): void {
         moved = false;
         chained = false;
         origin = { x: event.clientX, y: event.clientY };
+        // touch-action: none on the board already stops scrolling; no preventDefault here, it would
+        // mark the touch as consumed and disturb Chromium's tap synthesis for the next touches.
         try { svg.setPointerCapture(event.pointerId); } catch { /* synthetic pointers */ }
-        event.preventDefault();
     });
     svg.addEventListener('pointermove', event => {
         if (event.pointerId !== active || !from || solved || finishing) return;
@@ -510,6 +474,7 @@ function wireDraw(q: DrawQuestion): void {
     const end = (event: PointerEvent): void => {
         if (event.pointerId !== active) return;
         active = null;
+        if (svg.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
         settle(event);
         if (finishing && !solved) setTimeout(() => judge(true, true), 0);
         else paint();
