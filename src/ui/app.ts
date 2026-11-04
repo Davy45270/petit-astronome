@@ -253,10 +253,19 @@ function speakNotion(): void {
  * that click (seen by the noisy-finger test). The click stays for the keyboard and is ignored when a
  * tap has just been handled.
  */
+let lastTap = -Infinity;
+// The browser's own click for a tap already handled arrives after the screen has changed and lands on
+// whatever is now under the finger: swallow it, whatever its target.
+document.addEventListener('click', event => {
+    if (performance.now() - lastTap < 700 && event.isTrusted && event.pointerType !== '') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+    }
+}, true);
+
 function onTap(el: Element | null, action: () => void): void {
     if (!el) return;
     let down: { id: number; x: number; y: number } | null = null;
-    let tappedAt = -Infinity;
     el.addEventListener('pointerdown', event => {
         const e = event as PointerEvent;
         if (e.isPrimary && e.button <= 0) down = { id: e.pointerId, x: e.clientX, y: e.clientY };
@@ -268,13 +277,11 @@ function onTap(el: Element | null, action: () => void): void {
         down = null;
         if (!start || start.id !== e.pointerId || Math.hypot(e.clientX - start.x, e.clientY - start.y) > 16) return;
         if (!el.isConnected || !el.contains(document.elementFromPoint(e.clientX, e.clientY))) return;
-        tappedAt = performance.now();
+        lastTap = performance.now();
         action();
     });
-    el.addEventListener('click', () => {
-        if (performance.now() - tappedAt < 800) return;
-        action();
-    });
+    // Keyboard (Enter, Space) and any click not preceded by a handled tap.
+    el.addEventListener('click', () => { action(); });
 }
 
 /* ---------- interactions ---------- */

@@ -95,7 +95,7 @@ for (const [level, label] of [[36, 'drawing seven constellations from memory'], 
             await tapEl('#continue');
             await expect.poll(async () => (await state(page)).screen === 'result' || (await state(page)).index === i + 1, `tap on Continuer after ${q.key}`).toBe(true);
             } catch (error) {
-                throw new Error(`${String(error)}\n--- pointer log ---\n${await probe()}`, { cause: error });
+                throw new Error(`${String(error)}\n--- state ---\n${JSON.stringify({ ...(await state(page)), question: undefined })}\n--- pointer log ---\n${await probe()}`, { cause: error });
             }
         }
         await expect(page.locator('.result .score')).toHaveText('6/6');
