@@ -7,7 +7,9 @@ test('home lists every level; only the first is open on a new device', async ({ 
     await expect(page.locator('[data-level]')).toHaveCount(37);
     await expect(page.locator('[data-level="1"]')).not.toHaveAttribute('aria-disabled', 'true');
     await expect(page.locator('[data-level="2"]')).toHaveAttribute('aria-disabled', 'true');
-    await page.locator('[data-level="2"]').click();
+    // aria-disabled: Playwright would wait for it to be enabled, a child just taps it.
+    await page.locator('[data-level="2"]').click({ force: true });
+    await expect(page.locator('[data-level="2"]')).toHaveClass(/shake/);
     await expect(page.locator('.notion')).toHaveCount(0);
 });
 

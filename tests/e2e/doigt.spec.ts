@@ -27,6 +27,8 @@ for (const [level, label] of [[36, 'drawing seven constellations from memory'], 
             await touch('touchEnd');
         };
         const tapEl = async (selector: string): Promise<void> => {
+            // The child scrolls to the button first, like on a phone.
+            await page.locator(selector).scrollIntoViewIfNeeded();
             const box = (await page.locator(selector).boundingBox())!;
             await tap(box.x + box.width / 2, box.y + box.height / 2, Math.min(box.width, box.height) / 4);
         };
