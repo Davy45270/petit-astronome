@@ -238,6 +238,7 @@ function goOn(): void {
     }
     resetQuestion();
     render();
+    scrollTo(0, 0);
     if (save.voice) speak(current()!.prompt);
 }
 

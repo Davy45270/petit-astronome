@@ -43,7 +43,7 @@ for (const [level, label] of [[36, 'drawing seven constellations from memory'], 
             // Like a child on a phone: swipe the page up until the button is on screen, then tap it.
             const viewport = page.viewportSize()!;
             for (let swipe = 0; swipe < 12; swipe++) {
-                const b = (await page.locator(selector).boundingBox())!;
+                const b = (await page.locator(selector).boundingBox({ timeout: 5000 }))!;
                 if (b.y >= 60 && b.y + b.height <= viewport.height - 60) break;
                 const up = b.y > viewport.height / 2;
                 const x = viewport.width * (0.3 + rng() * 0.4), y0 = viewport.height * (up ? 0.78 : 0.3), y1 = viewport.height * (up ? 0.3 : 0.78);
@@ -70,12 +70,13 @@ for (const [level, label] of [[36, 'drawing seven constellations from memory'], 
         await tapEl(`[data-level="${level}"]`);
         await expect(page.locator('.notion')).toBeVisible();
         await tapEl('#start');
-        const scroll = await page.evaluate(() => scrollY);
         for (let i = 0; i < 6; i++) {
             const q = (await state(page)).question!;
+            try {
             if (q.type === 'choice') await tapEl(`[data-answer="${q.answer}"]`);
             if (q.type === 'spot') { const p = await spotAt(page, q.answer); await tap(p.x, p.y, 3); }
             if (q.type === 'order') for (const id of q.answer) await tapEl(`[data-item="${id}"]`);
+            const before = await page.evaluate(() => scrollY);
             if (q.type === 'draw') for (const [a, b] of constellation(q.constellation).lines) {
                 const p = await starAt(page, a), r = await starAt(page, b);
                 await touch('touchStart', p.x + noise(3), p.y + noise(3));
@@ -87,18 +88,14 @@ for (const [level, label] of [[36, 'drawing seven constellations from memory'], 
                 }
                 await touch('touchEnd');
             }
-            try {
-                await expect(page.locator('#continue')).toBeVisible();
-            } catch {
-                throw new Error(`${q.key} not solved by the finger:\n${await probe()}`);
-            }
+            // Drawing never scrolls the page.
+            if (q.type === 'draw') expect(await page.evaluate(() => scrollY), `${q.key} scrolled while drawing`).toBe(before);
+            await expect(page.locator('#continue'), `${q.key} not solved by the finger`).toBeVisible();
             expect((await state(page)).mistakes, q.key).toBe(0);
-            expect(await page.evaluate(() => scrollY)).toBe(scroll);
             await tapEl('#continue');
-            try {
-                await expect.poll(async () => (await state(page)).screen === 'result' || (await state(page)).index === i + 1).toBe(true);
-            } catch {
-                throw new Error(`tap on Continuer after ${q.key} lost:\n${await probe()}`);
+            await expect.poll(async () => (await state(page)).screen === 'result' || (await state(page)).index === i + 1, `tap on Continuer after ${q.key}`).toBe(true);
+            } catch (error) {
+                throw new Error(`${String(error)}\n--- pointer log ---\n${await probe()}`, { cause: error });
             }
         }
         await expect(page.locator('.result .score')).toHaveText('6/6');
