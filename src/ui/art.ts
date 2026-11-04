@@ -136,7 +136,7 @@ export function constellationSvg(id: ConstellationId, lines: boolean, label: str
 export function drawBoardSvg(id: ConstellationId, guide: boolean, drawn: (a: string, b: string) => boolean = () => false): string {
     const sky = constellationLayout(id, 340);
     return `<svg id="board" class="art sky board" viewBox="0 0 340 340" role="img" aria-label="Ciel à relier : ${constellation(id).name}"><rect width="340" height="340" rx="22" class="night"/>${backdropStars(340, 7, 30)}
-        <g id="guide">${guide ? skyLines(sky, constellation(id).lines, 'guide') : ''}</g><g id="drawn">${skyLines(sky, constellation(id).lines.filter(([a, b]) => drawn(a, b)), 'drawn')}</g><line id="rubber" x1="0" y1="0" x2="0" y2="0" visibility="hidden"/>${skyStars(sky)}</svg>`;
+        <g id="guide">${guide ? skyLines(sky, constellation(id).lines, 'guide-line') : ''}</g><g id="drawn">${skyLines(sky, constellation(id).lines.filter(([a, b]) => drawn(a, b)), 'drawn')}</g><line id="rubber" x1="0" y1="0" x2="0" y2="0" visibility="hidden"/>${skyStars(sky)}</svg>`;
 }
 
 function northSvg(spots: boolean): string {

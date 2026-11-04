@@ -408,22 +408,26 @@ function wireDraw(q: DrawQuestion): void {
         if (lines.has(key)) {
             drawn.add(key);
             paint();
-            judge(true, drawn.size === lines.size);
+            // The last line closes the question only once the finger is up: re-rendering the board under a
+            // captured finger made Chromium swallow the next tap (found by the noisy-finger test).
+            if (drawn.size === lines.size) finishing = true;
+            else judge(true, false);
             return true;
         }
         if (strict) {
             judge(false, false);
-            if (mistakes === STEP_GUESS) svg.querySelector('#guide')!.innerHTML = skyLines(sky, constellation(q.constellation).lines, 'guide');
+            if (mistakes === STEP_GUESS) svg.querySelector('#guide')!.innerHTML = skyLines(sky, constellation(q.constellation).lines, 'guide-line');
         }
         return false;
     };
     let active: number | null = null;
+    let finishing = false;
     let from: string | null = null;
     let moved = false;
     let chained = false;
     let origin = { x: 0, y: 0 };
     svg.addEventListener('pointerdown', event => {
-        if (active !== null || solved) return;
+        if (active !== null || solved || finishing) return;
         const star = nearest(event.clientX, event.clientY, 40);
         if (!star) return;
         active = event.pointerId;
@@ -435,7 +439,7 @@ function wireDraw(q: DrawQuestion): void {
         event.preventDefault();
     });
     svg.addEventListener('pointermove', event => {
-        if (event.pointerId !== active || !from || solved) return;
+        if (event.pointerId !== active || !from || solved || finishing) return;
         if (Math.hypot(event.clientX - origin.x, event.clientY - origin.y) > 12) moved = true;
         if (!moved) return;
         selected = null;
@@ -450,24 +454,27 @@ function wireDraw(q: DrawQuestion): void {
             chained = true;
         }
     });
-    const end = (event: PointerEvent): void => {
-        if (event.pointerId !== active) return;
-        active = null;
+    const settle = (event: PointerEvent): void => {
         rubber.setAttribute('visibility', 'hidden');
         const start = from;
         from = null;
-        if (solved || !start || event.type !== 'pointerup') { paint(); return; }
+        if (solved || finishing || !start || event.type !== 'pointerup') return;
         if (!moved) {
             // Tap mode: first tap picks a star, the second one links.
             if (selected && selected !== start) { const a = selected; selected = null; link(a, start, true); }
             else selected = selected === start ? null : start;
-            paint();
             return;
         }
         // A stroke that already linked stars is never a mistake; a stroke that linked nothing is judged where it ends.
         const star = nearest(event.clientX, event.clientY, 26);
         if (star && star !== start && !chained) link(start, star, true);
-        paint();
+    };
+    const end = (event: PointerEvent): void => {
+        if (event.pointerId !== active) return;
+        active = null;
+        settle(event);
+        if (finishing && !solved) setTimeout(() => judge(true, true), 0);
+        else paint();
     };
     for (const name of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) svg.addEventListener(name, end as EventListener);
     paint();
