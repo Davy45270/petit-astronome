@@ -7,6 +7,8 @@
 
 Un jeu pour découvrir le ciel dès 6 ans : le Soleil, les huit planètes, la Lune et ses phases, les étoiles et les constellations. Lumi, une petite étoile, accompagne l’enfant. En français. Aucun chronomètre, compte ni publicité.
 
+Pour une première séance à 5–6 ans, ouvre **Découvrir avec Lumi**. Les cinq ateliers sont accessibles dès l’accueil. Ils proposent chacun trois gestes courts, avec une aide et la possibilité de passer. L’accès **Photos des planètes** contient huit vues de missions spatiales accompagnées d’audios français. Les médias sont embarqués pour fonctionner hors connexion après installation.
+
 Trente-sept niveaux en sept leçons : le Soleil et la Terre (jour, nuit, année, saisons), reconnaître les planètes, leur ordre, les tailles et les distances, la Lune, les étoiles, puis les constellations. Chaque niveau s’ouvre sur une carte « notion » qui explique en trois phrases ce qu’on va apprendre ; chaque réponse est suivie de son explication. On choisit une image, on touche la bonne planète dans le système solaire, on range les planètes dans l’ordre, et on relie au doigt les vraies étoiles d’Orion ou de la Grande Ourse.
 
 Les dessins sont faits à la main en SVG à partir de données réelles : rayons et distances des planètes (dessinées **à la même échelle** quand on compare leurs tailles), forme exacte de chaque phase de la Lune vue de France, position réelle des étoiles des constellations (projection du ciel vu du sol, nord en haut, est à gauche). Des tests le vérifient : par exemple, prolonger cinq fois le bord de la Grande Casserole mène bien à l’étoile Polaire.

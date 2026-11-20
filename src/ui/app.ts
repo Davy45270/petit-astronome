@@ -12,6 +12,8 @@ import { otherGamesHtml } from './other-games';
 import { feedbackLinkHtml } from './feedback';
 import { canSpeak, speak, onVoices } from './speech';
 
+import { openDiscovery } from './discovery';
+
 type Screen = 'home' | 'notion' | 'exercise' | 'result' | 'parents' | 'gate' | 'games';
 
 const root = document.querySelector<HTMLElement>('#app')!;
@@ -79,6 +81,10 @@ function homeHtml(): string {
     }).join('');
     const earned = levels.reduce((sum, _, i) => sum + stars(best(save.records, i + 1)), 0);
     return `<header class="hero">${mascotSvg('joie', motion())}<div><h1>Petit Astronome</h1><p>Planètes, Lune, étoiles et constellations</p><p class="total">${starsHtml(Math.min(3, earned))}<span>${earned} / ${levels.length * 3} étoiles</span></p></div></header>
+        <section class="discovery-entry" aria-label="Pour commencer">
+            <button id="discovery">✦ Découvrir avec Lumi</button>
+            <button id="planet-gallery" class="ghost">🪐 Photos des planètes</button>
+        </section>
         ${blocks}
         <footer class="home-foot"><label class="toggle"><input id="voice" type="checkbox" ${save.voice ? 'checked' : ''}> Lire les questions à voix haute</label><span class="foot-links"><button id="other-games" class="ghost">Mes autres jeux</button><button id="parents" class="ghost">Espace parents</button>${feedbackLinkHtml()}</span></footer>`;
 }
@@ -285,6 +291,12 @@ function wire(): void {
     root.querySelector('#back')?.addEventListener('click', () => { screen = 'home'; confirmErase = false; render(); });
     root.querySelector('#listen')?.addEventListener('click', () => { if (screen === 'notion') speakNotion(); else speak(current()!.prompt); });
     if (screen === 'home') {
+        for (const id of ['discovery', 'planet-gallery']) {
+            onPress(root.querySelector(`#${id}`), () => openDiscovery(root, storage, () => {
+                render();
+                root.querySelector<HTMLElement>(`#${id}`)?.focus();
+            }, id === 'planet-gallery'));
+        }
         root.querySelectorAll<HTMLElement>('[data-level]').forEach(b => onPress(b, () => {
             const n = Number(b.dataset.level);
             if (unlocked(save.records, n)) openLevel(n);
