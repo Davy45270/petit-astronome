@@ -1,0 +1,7 @@
+Petit Astronome — photographies et mosaïques des planètes
+Les crédits individuels, sources et traitements figurent dans les fiches de la galerie et dans src/ui/planet-gallery.json.
+Conditions de réutilisation éducative des images :
+https://www.nasa.gov/nasa-brand-center/images-and-media/
+https://www.jpl.nasa.gov/jpl-image-use-policy/
+Les images conservent les conditions de réutilisation de leurs sources. La licence MIT du code ne les couvre pas.
+Les pistes audio françaises ont été générées localement avec eSpeak NG.

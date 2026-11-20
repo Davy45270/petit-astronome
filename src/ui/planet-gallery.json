@@ -1,0 +1,90 @@
+[
+  {
+    "id": "mercure",
+    "nom": "Mercure",
+    "description": "On voit des ronds à sa surface. Ce sont des cratères.",
+    "alt": "Globe gris couvert de cratères.",
+    "credit": "MESSENGER · PIA15160 · NASA/Johns Hopkins University Applied Physics Laboratory/Carnegie Institution of Washington",
+    "source": "https://science.nasa.gov/photojournal/mercury-globe-0n-0e/",
+    "traitement": "Mosaïque de prises de vue.",
+    "photo": "photos/mercure.webp",
+    "audio": "audio/mercure.mp3"
+  },
+  {
+    "id": "venus",
+    "nom": "Vénus",
+    "description": "Les nuages cachent le sol de Vénus. Cherche les grandes bandes claires.",
+    "alt": "Globe couvert de bandes nuageuses claires.",
+    "credit": "Mariner 10 · PIA23791 · NASA/JPL-Caltech",
+    "source": "https://science.nasa.gov/image-detail/venus-mariner-10-pia23791-fig2-2/",
+    "traitement": "Image traitée pour faire ressortir les nuages.",
+    "photo": "photos/venus.webp",
+    "audio": "audio/venus.mp3"
+  },
+  {
+    "id": "terre",
+    "nom": "Terre",
+    "description": "Voici notre planète. Le bleu, c’est l’océan.",
+    "alt": "Globe bleu avec des nuages blancs et l’Afrique visible.",
+    "credit": "Apollo 17 · AS17-148-22727 · NASA Johnson Space Center",
+    "source": "https://science.nasa.gov/resource/the-blue-marble/",
+    "traitement": "Photographie.",
+    "photo": "photos/terre.webp",
+    "audio": "audio/terre.mp3"
+  },
+  {
+    "id": "mars",
+    "nom": "Mars",
+    "description": "Mars a des paysages couleur rouille. Des robots roulent sur son sol.",
+    "alt": "Globe ocre et brun aux marques sombres.",
+    "credit": "Viking · PIA00407 · NASA/JPL-Caltech/USGS",
+    "source": "https://science.nasa.gov/resource/global-color-views-of-mars/?site=msl",
+    "traitement": "Mosaïque de prises de vue.",
+    "photo": "photos/mars.webp",
+    "audio": "audio/mars.mp3"
+  },
+  {
+    "id": "jupiter",
+    "nom": "Jupiter",
+    "description": "Vois-tu la grande tache rouge ? C’est une énorme tempête.",
+    "alt": "Globe à bandes claires et sombres avec une tache ovale rougeâtre.",
+    "credit": "Voyager 1 · PIA01509 · NASA/JPL",
+    "source": "https://www.jpl.nasa.gov/images/pia01509-jupiter-full-disk-with-great-red-spot/",
+    "traitement": "Vue du disque.",
+    "photo": "photos/jupiter.webp",
+    "audio": "audio/jupiter.mp3"
+  },
+  {
+    "id": "saturne",
+    "nom": "Saturne",
+    "description": "Regarde ses grands anneaux. Ils sont surtout faits de morceaux de glace.",
+    "alt": "Globe pâle entouré de larges anneaux.",
+    "credit": "Cassini · PIA11141 · NASA/JPL/Space Science Institute",
+    "source": "https://science.nasa.gov/photojournal/saturn-four-years-on/",
+    "traitement": "Vue avec ses anneaux.",
+    "photo": "photos/saturne.webp",
+    "audio": "audio/saturne.mp3"
+  },
+  {
+    "id": "uranus",
+    "nom": "Uranus",
+    "description": "Uranus tourne presque sur le côté. Imagine une toupie penchée très fort.",
+    "alt": "Disque bleu-vert pâle et uniforme dans cette vue.",
+    "credit": "Voyager 2 · PIA00032 · NASA/JPL",
+    "source": "https://science.nasa.gov/photojournal/uranus-in-true-and-false-color/",
+    "traitement": "Moitié gauche de l’image source, recadrée.",
+    "photo": "photos/uranus.webp",
+    "audio": "audio/uranus.mp3"
+  },
+  {
+    "id": "neptune",
+    "nom": "Neptune",
+    "description": "Neptune est la planète la plus loin du Soleil. La sonde a vu des tempêtes dans ses nuages.",
+    "alt": "Disque bleu avec des nuages clairs et une tache sombre.",
+    "credit": "Voyager 2 · PIA01492 · NASA/JPL",
+    "source": "https://science.nasa.gov/photojournal/neptune-full-disk-view/",
+    "traitement": "Survol de 1989, couleurs accentuées.",
+    "photo": "photos/neptune.webp",
+    "audio": "audio/neptune.mp3"
+  }
+]
